@@ -13,8 +13,8 @@ function mmmCounter() {
     return;
   }
 
-  // Calculate starting number (50k less than target, but not below 0)
-  const startingNumber = Math.max(0, targetNumber - 50000);
+  // Calculate starting number
+  const startingNumber = Math.max(0, targetNumber - 800);
 
   function updateCounterDisplay(number) {
     const paddedNumber = number.toString().padStart(6, "0");
@@ -50,14 +50,19 @@ function mmmCounter() {
 
   const counter = { value: startingNumber };
 
+  // Calculate duration based on range and desired speed
+  const range = targetNumber - startingNumber;
+  const momentsPerSecond = 1.5;
+  const duration = range / momentsPerSecond;
+
   gsap.to(counter, {
     value: targetNumber,
-    duration: 2,
-    ease: "power2.out",
+    duration: duration,
+    ease: "none",
     scrollTrigger: {
       trigger: visibleElement,
       start: "top bottom",
-      toggleActions: "play none none reset",
+      toggleActions: "play none none none",
     },
     onUpdate: function () {
       const currentValue = Math.floor(counter.value);

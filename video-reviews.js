@@ -1,6 +1,5 @@
 function videoReviews() {
   const wrap = document.querySelector(".split_wrap.is-videos");
-
   if (!wrap) return;
 
   const el = wrap.querySelector(".reviews_videos_cms.swiper");
@@ -8,13 +7,38 @@ function videoReviews() {
   const arrowPrev = wrap.querySelector(".split-gallery_arrow.swiper-prev");
 
   let players = [];
+  let hasStarted = false;
 
-  // Initialize all Plyr instances
+  // Init Swiper
+  const videoSwiper = new Swiper(el, {
+    slidesPerView: 1,
+    spaceBetween: 0,
+    loop: true,
+    speed: 200,
+    effect: "fade",
+    fadeEffect: { crossFade: true },
+    grabCursor: false,
+    watchOverflow: true,
+    navigation: {
+      nextEl: arrowNext,
+      prevEl: arrowPrev,
+    },
+    on: {
+      slideChange: function () {
+        // Stop all players when slide changes
+        players.forEach((player) => {
+          if (!player.destroyed) player.stop();
+        });
+      },
+    },
+  });
+
+  // Init Plyr players
   el.querySelectorAll(".reviews_videos_player").forEach((element, index) => {
     const playerId = `reviews-player-${index}`;
     element.id = playerId;
 
-    players[index] = new Plyr(`#${playerId}`, {
+    const player = new Plyr(`#${playerId}`, {
       controls: ["play-large"],
       youtube: {
         rel: 0,
@@ -28,32 +52,29 @@ function videoReviews() {
       playsinline: true,
       resetOnEnd: true,
     });
-  });
 
-  const videoSwiper = new Swiper(el, {
-    slidesPerView: 1,
-    spaceBetween: 0,
-    loop: true,
-    speed: 200,
-    effect: "fade",
-    fadeEffect: {
-      crossFade: true,
-    },
-    grabCursor: false,
-    watchOverflow: true,
+    players[index] = player;
 
-    navigation: {
-      nextEl: arrowNext,
-      prevEl: arrowPrev,
-    },
+    // Detect first manual play
+    player.on("play", () => {
+      if (!hasStarted) hasStarted = true;
+    });
 
-    on: {
-      slideChange: function () {
-        players.forEach((player, index) => {
-          player.stop();
-        });
-      },
-    },
+    // When video ends
+    player.on("ended", () => {
+      if (!hasStarted) return; // Don't autoplay if first video hasn't been manually played
+
+      // Go to next slide
+      videoSwiper.slideNext();
+
+      // Wait for Swiper transition to complete, then autoplay next video
+      const nextIndex = videoSwiper.realIndex;
+      const nextPlayer = players[nextIndex];
+
+      setTimeout(() => {
+        if (nextPlayer) nextPlayer.play();
+      }, 250);
+    });
   });
 }
 
