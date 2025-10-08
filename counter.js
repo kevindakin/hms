@@ -52,7 +52,7 @@ function mmmCounter() {
 
   // Calculate duration based on range and desired speed
   const range = targetNumber - startingNumber;
-  const momentsPerSecond = 1.5;
+  const momentsPerSecond = 3;
   const duration = range / momentsPerSecond;
 
   gsap.to(counter, {

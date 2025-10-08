@@ -9,6 +9,10 @@ function videoReviews() {
   let players = [];
   let hasStarted = false;
 
+  // Detect touch device
+  const isTouchDevice =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
   // Init Swiper
   const videoSwiper = new Swiper(el, {
     slidesPerView: 1,
@@ -18,17 +22,29 @@ function videoReviews() {
     effect: "fade",
     fadeEffect: { crossFade: true },
     grabCursor: false,
+    allowTouchMove: false, // Disable swipe/drag entirely
     watchOverflow: true,
     navigation: {
       nextEl: arrowNext,
       prevEl: arrowPrev,
     },
     on: {
-      slideChange: function () {
-        // Stop all players when slide changes
+      transitionStart: function () {
+        // Stop all players immediately when transition starts
         players.forEach((player) => {
-          if (!player.destroyed) player.stop();
+          if (!player.destroyed) player.pause();
         });
+      },
+      slideChangeTransitionEnd: function () {
+        // Autoplay video after transition completes (after first video has been played)
+        if (hasStarted && !isTouchDevice) {
+          const nextIndex = videoSwiper.realIndex;
+          const nextPlayer = players[nextIndex];
+
+          if (nextPlayer && !nextPlayer.destroyed) {
+            nextPlayer.play();
+          }
+        }
       },
     },
   });
@@ -51,6 +67,7 @@ function videoReviews() {
       clickToPlay: true,
       playsinline: true,
       resetOnEnd: true,
+      ratio: "9:16",
     });
 
     players[index] = player;
@@ -62,18 +79,10 @@ function videoReviews() {
 
     // When video ends
     player.on("ended", () => {
-      if (!hasStarted) return; // Don't autoplay if first video hasn't been manually played
+      if (!hasStarted || isTouchDevice) return;
 
       // Go to next slide
       videoSwiper.slideNext();
-
-      // Wait for Swiper transition to complete, then autoplay next video
-      const nextIndex = videoSwiper.realIndex;
-      const nextPlayer = players[nextIndex];
-
-      setTimeout(() => {
-        if (nextPlayer) nextPlayer.play();
-      }, 250);
     });
   });
 }
