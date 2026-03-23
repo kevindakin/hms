@@ -84,6 +84,9 @@ function loader() {
 function mobileMenu() {
   const nav = document.querySelector('[data-menu="nav"]');
   const menu = nav.querySelector(".nav_content");
+
+  if (!menu) return;
+
   const links = menu.querySelectorAll(".nav_link-dropdown");
   const button = nav.querySelector('[data-menu="hamburger"]');
   const btnWrap = nav.querySelector(".nav_button-wrap");
@@ -179,6 +182,9 @@ function mobileMenu() {
 
 function navScroll() {
   const nav = document.querySelector('[data-menu="nav"]');
+
+  if (!nav) return;
+
   const border = nav.querySelector(".nav_border");
   const hero = document.querySelector('[data-menu="hero"]');
 
